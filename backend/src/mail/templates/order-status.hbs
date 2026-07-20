@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { padding: 20px; border: 1px solid #eee; border-radius: 8px; max-width: 500px; margin: 0 auto;}
+        .header { background-color: #059669; color: white; padding: 10px; text-align: center; border-radius: 5px 5px 0 0; }
+        .status { font-size: 22px; font-weight: bold; color: #059669; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Order Update</h2>
+        </div>
+        <p>Hi {{customerName}},</p>
+        <p>There is an update on your recent order.</p>
+        
+        <h3>Order ID: #{{orderId}}</h3>
+        <p>Status: <span class="status">{{status}}</span></p>
+        
+        <p>Thank you for choosing the University Canteen!</p>
+    </div>
+</body>
+</html>

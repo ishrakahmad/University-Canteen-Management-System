@@ -12,6 +12,7 @@ import { RolesGuard } from './auth/guard/roles.guard';
 import { CategoriesModule } from './categories/categories.module';
 import { MenuModule } from './menu/menu.module';
 import { MailModule } from './mail/mail.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { MailModule } from './mail/mail.module';
     CategoriesModule,
     MenuModule,
     MailModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [

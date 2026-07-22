@@ -9,18 +9,20 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './auth/guard/jwt.guard';
 import { RolesGuard } from './auth/guard/roles.guard';
-import { CategoriesModule } from './categories/categories.module';
 import { MenuModule } from './menu/menu.module';
 import { MailModule } from './mail/mail.module';
 import { OrdersModule } from './orders/orders.module';
+import { CategoriesModule } from './categories/categories.module';
 import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
+    
     ConfigModule.forRoot({
       isGlobal: true,
     }),
 
+    
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -33,15 +35,15 @@ import { ReportsModule } from './reports/reports.module';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         entities: [User],
-        synchronize: true,
+        synchronize: true, 
       }),
     }),
     UserModule,
     AuthModule,
-    CategoriesModule,
     MenuModule,
     MailModule,
     OrdersModule,
+    CategoriesModule,
     ReportsModule,
   ],
   controllers: [AppController],
@@ -53,7 +55,7 @@ import { ReportsModule } from './reports/reports.module';
     },
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: RolesGuard, 
     },
   ],
 })

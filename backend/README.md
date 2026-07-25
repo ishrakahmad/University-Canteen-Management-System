@@ -43,4 +43,4 @@ API docs available at `http://localhost:5001/api` (Swagger).
 - [x] Mail notifications
 - [x] Reports module (sales summary, best sellers)
 - [ ] Frontend (Next.js) — final phase
-- [ ] Wallet / prepaid balance (stretch goal)
+

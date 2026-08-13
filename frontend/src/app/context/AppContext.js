@@ -1,7 +1,8 @@
 "use client";
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
+import api from '../lib/axios';
 
 export const AppContext = createContext();
 
@@ -13,30 +14,102 @@ export const AppProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState('');
   const router = useRouter();
+  const [categories, setCategories] = useState([]);
+
+  const [cart, setCart] = useState([]);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await api.get('/categories');
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    }
+  }, []);
+
+  const fetchMenu = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/menu');
+      setMenuItems(response.data);
+    } catch (error) {
+      console.error("Failed to fetch menu", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const triggerNotification = (message) => {
+    setNotification(message);
+    setTimeout(() => setNotification(''), 3000);
+  };
+
+  const addToCart = (item, quantity) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
+      if (existingItem) {
+        return prevCart.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + quantity }
+            : cartItem
+        );
+      }
+      return [...prevCart, { ...item, quantity }];
+    });
+    triggerNotification(`Added ${quantity}x ${item.name} to cart!`);
+  };
+
+  const removeFromCart = (itemId) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== itemId));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
+    const storedToken =
+      localStorage.getItem('token') || localStorage.getItem('accessToken');
     if (storedToken) {
       setToken(storedToken);
       try {
         const decoded = jwtDecode(storedToken);
-        setUserRole(normalizeRole(decoded?.role));
+        const normalizedRole = normalizeRole(
+          decoded?.role ?? decoded?.userRole ?? decoded?.user?.role,
+        );
+        setUserRole(normalizedRole || null);
         setUserName(decoded.fullName);
-        setUserId(decoded.sub);
+        setUserId(decoded.sub ?? decoded.userId ?? decoded.id ?? null);
       } catch (error) {
+        console.error("Invalid token");
         localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
       }
     }
-  }, []);
+    fetchCategories();
+    setLoading(false);
+  }, [fetchCategories]);
 
   const login = (newToken) => {
     setToken(newToken);
     localStorage.setItem('token', newToken);
-    const decoded = jwtDecode(newToken);
-    setUserRole(normalizeRole(decoded?.role));
-    setUserName(decoded.fullName);
-    setUserId(decoded.sub);
+    localStorage.setItem('accessToken', newToken);
+    try {
+      const decoded = jwtDecode(newToken);
+      const normalizedRole = normalizeRole(
+        decoded?.role ?? decoded?.userRole ?? decoded?.user?.role,
+      );
+      setUserRole(normalizedRole || null);
+      setUserName(decoded.fullName);
+      setUserId(decoded.sub ?? decoded.userId ?? decoded.id ?? null);
+    } catch (e) {
+      console.error("Failed to decode token on login");
+    }
+    triggerNotification("Successfully logged in!");
   };
 
   const logout = () => {
@@ -44,12 +117,21 @@ export const AppProvider = ({ children }) => {
     setUserRole(null);
     setUserName(null);
     setUserId(null);
+    clearCart();
     localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
+    triggerNotification("Logged out successfully");
     router.push('/');
   };
 
   return (
-    <AppContext.Provider value={{ token, userRole, userName, userId, login, logout }}>
+    <AppContext.Provider value={{
+      token, userRole, userName, userId, login, logout,
+      menuItems, loading, fetchMenu,
+      notification, triggerNotification,
+      categories, fetchCategories,
+      cart, addToCart, removeFromCart, clearCart
+    }}>
       {children}
     </AppContext.Provider>
   );

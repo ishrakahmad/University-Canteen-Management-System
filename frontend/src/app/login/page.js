@@ -2,6 +2,7 @@
 import { useState, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
 import api from '../lib/axios';
 import { AppContext } from '../context/AppContext';
 
@@ -15,11 +16,43 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const validationErrors = [];
+
+    if (!email.trim()) {
+      validationErrors.push('Enter email first');
+    }
+
+    if (!password.trim()) {
+      validationErrors.push('Enter valid password first');
+    }
+
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join('\n'));
+      return;
+    }
+
     try {
       const response = await api.post('/auth/login', { email, password });
-      const token = response.data.access_token;
-      login(token);
-      router.push('/');
+      const token = response.data.accessToken || response.data.access_token || response.data.token;
+
+      if (token) {
+        const decoded = jwtDecode(token);
+        login(token);
+
+        const normalizedRole =
+          typeof (decoded?.role ?? decoded?.userRole ?? decoded?.user?.role) === 'string'
+            ? (decoded?.role ?? decoded?.userRole ?? decoded?.user?.role).trim().toLowerCase()
+            : '';
+
+        if (normalizedRole === 'admin' || normalizedRole === 'staff') {
+          router.push('/dashboard');
+        } else {
+          router.push('/');
+        }
+      } else {
+        setError('Logged in, but no token received from backend.');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password');
     }
@@ -34,26 +67,39 @@ export default function LoginPage() {
         <p className="text-gray-600 text-center mb-8 font-medium">Sign in to your account.</p>
 
         {error && (
-          <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 text-sm font-bold text-center border border-red-200">
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 text-sm font-bold text-center border border-red-200 whitespace-pre-line">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <input
+            id="email"
             type="email"
             placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             className={inputClass}
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={inputClass}
-          />
+
+          <div>
+            <input
+              id="password"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              className={inputClass}
+            />
+            <div className="text-right mt-2">
+              <Link href="/forgot-password" className="text-sm font-bold text-emerald-600 hover:text-emerald-500 transition-colors">
+                Forgot your password?
+              </Link>
+            </div>
+          </div>
+
           <button
             type="submit"
             className="w-full py-4 mt-2 bg-gray-900 hover:bg-black text-white font-bold text-lg rounded-lg transition-colors shadow-md"

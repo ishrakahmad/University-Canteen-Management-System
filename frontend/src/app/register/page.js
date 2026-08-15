@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({ fullName: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ fullName: '', email: '', password: '', role: 'student' });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -39,6 +39,19 @@ export default function RegisterPage() {
             onChange={handleChange}
             className="block w-full p-4 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-all"
           />
+          <div>
+            <label className="text-sm font-bold text-gray-700 mb-1 block">Account Type</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full p-4 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-all cursor-pointer"
+            >
+              <option value="student">Student</option>
+              <option value="staff">Canteen Staff</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
           <button
             type="submit"
             className="w-full py-4 mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-lg transition-colors shadow-md"

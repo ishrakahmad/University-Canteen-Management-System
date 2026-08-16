@@ -1,12 +1,29 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
+import api from '../lib/axios';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage('');
+    setError('');
+
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
+      setMessage(response.data.message);
+      setEmail(''); 
+    } catch (err) {
+      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -20,9 +37,21 @@ export default function ForgotPasswordPage() {
             Enter your email address and we will send you a link to reset your password.
           </p>
         </div>
-
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {message && (
+            <div className="bg-emerald-50 text-emerald-800 p-4 rounded-xl text-sm font-bold border border-emerald-200 text-center">
+              {message}
+            </div>
+          )}
+          {error && (
+            <div className="bg-red-50 text-red-800 p-4 rounded-xl text-sm font-bold border border-red-200 text-center">
+              {error}
+            </div>
+          )}
+
           <div>
+            <label htmlFor="email" className="sr-only">Email address</label>
             <input
               id="email"
               name="email"
@@ -38,12 +67,13 @@ export default function ForgotPasswordPage() {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gray-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gray-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors disabled:bg-gray-400"
             >
-              Send Reset Link
+              {loading ? 'Sending Link...' : 'Send Reset Link'}
             </button>
           </div>
-
+          
           <div className="text-center mt-4">
             <Link href="/login" className="font-bold text-emerald-600 hover:text-emerald-500 transition-colors">
               Back to Login

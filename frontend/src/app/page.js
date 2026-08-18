@@ -26,8 +26,11 @@ export default function MenuPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {menuItems.map((item) => (
             <div key={item.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-              <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
-              <p className="text-emerald-600 font-bold text-lg">৳{Number(item.price).toFixed(2)}</p>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
+                <span className="text-emerald-600 font-bold text-lg">৳{Number(item.price).toFixed(2)}</span>
+              </div>
+              {item.description && <p className="text-gray-600 text-sm">{item.description}</p>}
             </div>
           ))}
         </div>

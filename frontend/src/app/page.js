@@ -5,15 +5,18 @@ import { AppContext } from './context/AppContext';
 export default function MenuPage() {
   const { menuItems, loading, fetchMenu, categories, fetchCategories } = useContext(AppContext);
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchMenu();
     fetchCategories();
   }, []);
 
-  const filteredItems = menuItems.filter(item =>
-    selectedCategoryId === 'all' || item.category?.id === selectedCategoryId
-  );
+  const filteredItems = menuItems.filter(item => {
+    const matchesCategory = selectedCategoryId === 'all' || item.category?.id === selectedCategoryId;
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="py-8">
@@ -24,7 +27,18 @@ export default function MenuPage() {
         <p className="text-emerald-800 font-medium">Pre-order your food, pick a time slot, and skip the queue during your break.</p>
       </div>
 
-      <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-6">Today&apos;s Menu</h2>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Today&apos;s Menu</h2>
+        <div className="w-full md:w-1/3">
+          <input
+            type="text"
+            placeholder="🔍 Search menu..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-all shadow-sm"
+          />
+        </div>
+      </div>
 
       {!loading && (
         <div className="flex flex-wrap gap-3 mb-8">

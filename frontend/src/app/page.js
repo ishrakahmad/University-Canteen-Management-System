@@ -9,6 +9,7 @@ export default function MenuPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [quantities, setQuantities] = useState({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     fetchMenu();
@@ -130,9 +131,31 @@ export default function MenuPage() {
                 </div>
               ))}
             </div>
-            <button className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl transition-colors shadow-lg">
+            <button
+              onClick={() => setShowConfirmModal(true)}
+              className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl transition-colors shadow-lg"
+            >
               Checkout Now
             </button>
+          </div>
+        </div>
+      )}
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 px-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <h3 className="text-3xl font-extrabold text-gray-900 mb-2">Confirm Order</h3>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button className="flex-1 py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition-colors">
+                Confirm Order
+              </button>
+            </div>
           </div>
         </div>
       )}

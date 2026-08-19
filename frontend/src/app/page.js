@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { AppContext } from './context/AppContext';
 
 export default function MenuPage() {
-  const { menuItems, loading, fetchMenu, categories, fetchCategories, token, addToCart, triggerNotification, cart } = useContext(AppContext);
+  const { menuItems, loading, fetchMenu, categories, fetchCategories, token, addToCart, triggerNotification, cart, removeFromCart } = useContext(AppContext);
   const router = useRouter();
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,7 +121,15 @@ export default function MenuPage() {
       {(cart || []).length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] p-4 md:p-6 z-40">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <span className="font-bold text-gray-900">{cart.length} item(s) in cart</span>
+            <div className="flex gap-4">
+              {cart.map(item => (
+                <div key={item.id} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                  <span className="font-bold text-gray-900">{item.quantity}x</span>
+                  <span className="text-gray-700">{item.name}</span>
+                  <button onClick={() => removeFromCart(item.id)} className="ml-2 text-red-500 hover:text-red-700 font-bold">✕</button>
+                </div>
+              ))}
+            </div>
             <button className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl transition-colors shadow-lg">
               Checkout Now
             </button>

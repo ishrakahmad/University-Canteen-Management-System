@@ -1,9 +1,11 @@
 "use client";
 import { useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppContext } from './context/AppContext';
 
 export default function MenuPage() {
-  const { menuItems, loading, fetchMenu, categories, fetchCategories } = useContext(AppContext);
+  const { menuItems, loading, fetchMenu, categories, fetchCategories, token, addToCart, triggerNotification } = useContext(AppContext);
+  const router = useRouter();
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [quantities, setQuantities] = useState({});
@@ -19,6 +21,17 @@ export default function MenuPage() {
       const newQty = currentQty + delta;
       return { ...prev, [id]: Math.max(1, newQty) };
     });
+  };
+
+  const handleAddToCart = (item) => {
+    if (!token) {
+      triggerNotification("Please log in to add items to your cart.");
+      router.push('/login');
+      return;
+    }
+    const finalQuantity = quantities[item.id] || 1;
+    addToCart(item, finalQuantity);
+    setQuantities(prev => ({ ...prev, [item.id]: 1 }));
   };
 
   const filteredItems = menuItems.filter(item => {
@@ -94,6 +107,12 @@ export default function MenuPage() {
                   <button onClick={() => handleQuantityChange(item.id, 1)} className="w-8 h-8 rounded bg-white border border-gray-300 text-gray-700 font-bold hover:bg-gray-100 flex items-center justify-center transition-colors">+</button>
                 </div>
               </div>
+              <button
+                onClick={() => handleAddToCart(item)}
+                className="w-full mt-3 py-3 bg-gray-900 hover:bg-black text-white font-bold rounded-lg transition-colors"
+              >
+                Add to Cart
+              </button>
             </div>
           );})}
         </div>

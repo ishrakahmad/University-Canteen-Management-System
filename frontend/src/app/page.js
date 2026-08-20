@@ -3,6 +3,15 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppContext } from './context/AppContext';
 
+const PICKUP_SLOTS = [
+  '10:00 AM - 10:15 AM',
+  '11:00 AM - 11:15 AM',
+  '12:00 PM - 12:15 PM',
+  '1:00 PM - 1:15 PM',
+  '2:00 PM - 2:15 PM',
+  '3:00 PM - 3:15 PM',
+];
+
 export default function MenuPage() {
   const { menuItems, loading, fetchMenu, categories, fetchCategories, token, addToCart, triggerNotification, cart, removeFromCart } = useContext(AppContext);
   const router = useRouter();
@@ -10,6 +19,7 @@ export default function MenuPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [quantities, setQuantities] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pickupTime, setPickupTime] = useState(PICKUP_SLOTS[0]);
 
   useEffect(() => {
     fetchMenu();
@@ -145,6 +155,20 @@ export default function MenuPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 px-4">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-3xl font-extrabold text-gray-900 mb-2">Confirm Order</h3>
+
+            <div className="mb-6">
+              <label className="text-sm font-bold text-gray-700 mb-2 block">Pickup Time Slot</label>
+              <select
+                value={pickupTime}
+                onChange={(e) => setPickupTime(e.target.value)}
+                className="w-full p-4 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 cursor-pointer"
+              >
+                {PICKUP_SLOTS.map(slot => (
+                  <option key={slot} value={slot}>{slot}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex gap-4">
               <button
                 onClick={() => setShowConfirmModal(false)}

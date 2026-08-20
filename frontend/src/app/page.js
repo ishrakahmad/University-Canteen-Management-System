@@ -14,7 +14,7 @@ const PICKUP_SLOTS = [
 ];
 
 export default function MenuPage() {
-  const { menuItems, loading, fetchMenu, categories, fetchCategories, token, addToCart, triggerNotification, cart, removeFromCart, clearCart } = useContext(AppContext);
+  const { menuItems, loading, fetchMenu, categories, fetchCategories, token, userRole, addToCart, triggerNotification, cart, removeFromCart, clearCart } = useContext(AppContext);
   const router = useRouter();
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +40,10 @@ export default function MenuPage() {
     if (!token) {
       triggerNotification("Please log in to add items to your cart.");
       router.push('/login');
+      return;
+    }
+    if (userRole !== 'student') {
+      triggerNotification("Only student accounts can place orders.");
       return;
     }
     const finalQuantity = quantities[item.id] || 1;

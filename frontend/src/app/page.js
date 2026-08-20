@@ -2,6 +2,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppContext } from './context/AppContext';
+import api from './lib/axios';
 
 const PICKUP_SLOTS = [
   '10:00 AM - 10:15 AM',
@@ -13,13 +14,14 @@ const PICKUP_SLOTS = [
 ];
 
 export default function MenuPage() {
-  const { menuItems, loading, fetchMenu, categories, fetchCategories, token, addToCart, triggerNotification, cart, removeFromCart } = useContext(AppContext);
+  const { menuItems, loading, fetchMenu, categories, fetchCategories, token, addToCart, triggerNotification, cart, removeFromCart, clearCart } = useContext(AppContext);
   const router = useRouter();
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [quantities, setQuantities] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pickupTime, setPickupTime] = useState(PICKUP_SLOTS[0]);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   useEffect(() => {
     fetchMenu();
@@ -43,6 +45,26 @@ export default function MenuPage() {
     const finalQuantity = quantities[item.id] || 1;
     addToCart(item, finalQuantity);
     setQuantities(prev => ({ ...prev, [item.id]: 1 }));
+  };
+
+  const confirmAndPlaceOrder = async () => {
+    if (!cart || cart.length === 0) return;
+    setIsCheckingOut(true);
+    try {
+      const orderItems = cart.map(item => ({
+        menuItemId: item.id,
+        quantity: item.quantity
+      }));
+      await api.post('/orders', { items: orderItems, pickupTime });
+      triggerNotification("Success! Your order has been placed.");
+      clearCart();
+      setShowConfirmModal(false);
+      router.push('/orders');
+    } catch (error) {
+      triggerNotification(error.response?.data?.message || "Failed to place order.");
+    } finally {
+      setIsCheckingOut(false);
+    }
   };
 
   const filteredItems = menuItems.filter(item => {
@@ -176,8 +198,8 @@ export default function MenuPage() {
               >
                 Cancel
               </button>
-              <button className="flex-1 py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition-colors">
-                Confirm Order
+              <button onClick={confirmAndPlaceOrder} disabled={isCheckingOut} className="flex-1 py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition-colors">
+                {isCheckingOut ? 'Placing Order...' : 'Confirm Order'}
               </button>
             </div>
           </div>

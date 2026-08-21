@@ -5,16 +5,20 @@ import { AppContext } from '../context/AppContext';
 import api from '../lib/axios';
 
 export default function MyOrdersPage() {
-  const { token } = useContext(AppContext);
+  const { token, userId, userRole } = useContext(AppContext);
   const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchOrders = async () => {
+  const fetchMyOrders = async () => {
     setLoading(true);
     try {
       const response = await api.get('/orders');
-      setOrders(response.data);
+      const mine = response.data.filter(
+        (order) => String(order.customer?.id) === String(userId)
+      );
+      mine.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setOrders(mine);
     } catch (error) {
       console.error('Failed to fetch orders', error);
     } finally {
@@ -27,8 +31,12 @@ export default function MyOrdersPage() {
       router.push('/login');
       return;
     }
-    fetchOrders();
-  }, [token]);
+    if (userRole && userRole !== 'student') {
+      router.push('/dashboard');
+      return;
+    }
+    if (userId) fetchMyOrders();
+  }, [token, userId, userRole]);
 
   if (!token) return null;
 

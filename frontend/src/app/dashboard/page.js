@@ -5,7 +5,7 @@ import { AppContext } from '../context/AppContext';
 import api from '../lib/axios';
 
 export default function DashboardPage() {
-  const { token, userRole } = useContext(AppContext);
+  const { token, userRole, triggerNotification } = useContext(AppContext);
   const router = useRouter();
 
   const isAdmin = userRole === 'admin';
@@ -37,6 +37,16 @@ export default function DashboardPage() {
     }
   };
 
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    try {
+      await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+      triggerNotification(`Order #${orderId} is now ${newStatus.toUpperCase()}`);
+      fetchOrders();
+    } catch (error) {
+      triggerNotification(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
   if (!isAdmin && !isStaff) return null;
 
   return (
@@ -51,14 +61,35 @@ export default function DashboardPage() {
         {loadingOrders ? (
           <div className="text-gray-500 font-medium">Loading orders...</div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {orders.map(order => (
-              <div key={order.id} className="border-b border-gray-100 pb-3">
-                <span className="font-bold text-gray-900">#{order.id}</span>
-                <span className="ml-3 text-gray-600">{order.status}</span>
-              </div>
-            ))}
-          </div>
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="py-3 px-4 text-gray-900 font-bold">Order</th>
+                <th className="py-3 px-4 text-gray-900 font-bold">Status</th>
+                <th className="py-3 px-4 text-gray-900 font-bold">Update</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map(order => (
+                <tr key={order.id} className="border-b border-gray-100">
+                  <td className="py-3 px-4 font-bold text-gray-900">#{order.id}</td>
+                  <td className="py-3 px-4 text-gray-600">{order.status}</td>
+                  <td className="py-3 px-4">
+                    <select
+                      value={order.status}
+                      onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                      className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg p-2 cursor-pointer"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="preparing">Preparing</option>
+                      <option value="ready">Ready</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

@@ -3,9 +3,10 @@ import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '../context/AppContext';
 import api from '../lib/axios';
+import AddMenuItem from '../components/AddMenuItem';
 
 export default function DashboardPage() {
-  const { token, userRole, triggerNotification } = useContext(AppContext);
+  const { token, userRole, triggerNotification, menuItems, fetchMenu } = useContext(AppContext);
   const router = useRouter();
 
   const isAdmin = userRole === 'admin';
@@ -24,6 +25,7 @@ export default function DashboardPage() {
       return;
     }
     fetchOrders();
+    fetchMenu();
   }, [token, userRole]);
 
   const fetchOrders = async () => {
@@ -55,6 +57,8 @@ export default function DashboardPage() {
         {isAdmin ? 'Admin Dashboard' : 'Staff Dashboard'}
       </h2>
       <p className="text-gray-600 font-medium mb-8">Manage the canteen menu and incoming orders.</p>
+
+      {isAdmin && <AddMenuItem onAddSuccess={() => fetchMenu()} />}
 
       <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
         <h3 className="text-2xl font-bold text-gray-900 mb-6">Incoming Orders</h3>

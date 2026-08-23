@@ -149,6 +149,32 @@ export default function DashboardPage() {
           </table>
         )}
       </div>
+
+      <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">Menu & Inventory</h3>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-gray-200 bg-gray-50">
+              <th className="py-3 px-4 text-gray-900 font-bold">Item Name</th>
+              <th className="py-3 px-4 text-gray-900 font-bold">Price</th>
+              <th className="py-3 px-4 text-gray-900 font-bold">Today?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {menuItems.map(item => (
+              <tr key={item.id} className="border-b border-gray-100">
+                <td className="py-3 px-4 text-gray-900 font-bold">{item.name}</td>
+                <td className="py-3 px-4 text-emerald-600 font-bold">৳{Number(item.price).toFixed(2)}</td>
+                <td className="py-3 px-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${item.isAvailableToday !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                    {item.isAvailableToday !== false ? 'Yes' : 'No'}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

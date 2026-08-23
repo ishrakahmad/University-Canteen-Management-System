@@ -6,7 +6,7 @@ import api from '../lib/axios';
 import AddMenuItem from '../components/AddMenuItem';
 
 export default function DashboardPage() {
-  const { token, userRole, triggerNotification, menuItems, fetchMenu } = useContext(AppContext);
+  const { token, userRole, triggerNotification, menuItems, fetchMenu, categories, fetchCategories } = useContext(AppContext);
   const router = useRouter();
 
   const isAdmin = userRole === 'admin';
@@ -14,6 +14,7 @@ export default function DashboardPage() {
 
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   useEffect(() => {
     if (userRole && userRole !== 'admin' && userRole !== 'staff') {
@@ -26,7 +27,32 @@ export default function DashboardPage() {
     }
     fetchOrders();
     fetchMenu();
+    fetchCategories();
   }, [token, userRole]);
+
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/categories', { name: newCategoryName });
+      triggerNotification(`Category "${newCategoryName}" created successfully.`);
+      setNewCategoryName('');
+      fetchCategories();
+    } catch (error) {
+      triggerNotification(error.response?.data?.message || "Failed to create category.");
+    }
+  };
+
+  const handleDeleteCategory = async (id, name) => {
+    if (!window.confirm(`Delete the "${name}" category?`)) return;
+    try {
+      await api.delete(`/categories/${id}`);
+      triggerNotification(`Category "${name}" deleted successfully.`);
+      fetchCategories();
+      fetchMenu();
+    } catch (error) {
+      triggerNotification(error.response?.data?.message || "Failed to delete category.");
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -59,6 +85,33 @@ export default function DashboardPage() {
       <p className="text-gray-600 font-medium mb-8">Manage the canteen menu and incoming orders.</p>
 
       {isAdmin && <AddMenuItem onAddSuccess={() => fetchMenu()} />}
+
+      {isAdmin && (
+        <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">Category Management</h3>
+          <form onSubmit={handleCreateCategory} className="flex gap-4 mb-6">
+            <input
+              type="text"
+              placeholder="Category Name"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              className="flex-1 p-3 border border-gray-300 rounded-lg text-black focus:outline-none focus:border-emerald-500"
+              required
+            />
+            <button type="submit" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">
+              Add Category
+            </button>
+          </form>
+          <div className="flex flex-wrap gap-2">
+            {categories.map(cat => (
+              <div key={cat.id} className="px-4 py-2 bg-gray-100 border border-gray-200 text-gray-800 rounded-full text-sm font-bold flex items-center gap-3">
+                <span>{cat.name}</span>
+                <button onClick={() => handleDeleteCategory(cat.id, cat.name)} className="text-gray-400 hover:text-red-600">✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
         <h3 className="text-2xl font-bold text-gray-900 mb-6">Incoming Orders</h3>

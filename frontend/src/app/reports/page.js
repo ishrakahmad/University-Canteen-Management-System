@@ -7,15 +7,16 @@ import api from '../lib/axios';
 export default function ReportsPage() {
   const { token, userRole } = useContext(AppContext);
   const router = useRouter();
+  const [range, setRange] = useState('daily');
   const [summary, setSummary] = useState(null);
   const [bestSellers, setBestSellers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchReports = async () => {
+  const fetchReports = async (selectedRange) => {
     setLoading(true);
     try {
       const [summaryRes, bestRes] = await Promise.all([
-        api.get('/reports/sales-summary?range=daily'),
+        api.get(`/reports/sales-summary?range=${selectedRange}`),
         api.get('/reports/best-sellers?limit=5'),
       ]);
       setSummary(summaryRes.data);
@@ -36,22 +37,37 @@ export default function ReportsPage() {
       router.push('/dashboard');
       return;
     }
-    fetchReports();
-  }, [token, userRole]);
+    fetchReports(range);
+  }, [token, userRole, range]);
 
   if (!token || userRole !== 'admin') return null;
 
   return (
     <div className="py-8">
-      <h2 className="text-4xl font-extrabold text-gray-900 mb-2">Sales Reports</h2>
-      <p className="text-gray-600 font-medium mb-8">See how the canteen is performing.</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-2">Sales Reports</h2>
+          <p className="text-gray-600 font-medium">See how the canteen is performing.</p>
+        </div>
+        <div className="flex gap-2">
+          {['daily', 'weekly'].map((r) => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              className={`px-5 py-2.5 rounded-full font-bold text-sm capitalize ${range === r ? 'bg-emerald-700 text-white' : 'bg-white text-gray-700 border border-gray-200'}`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-lg">Loading reports...</div>
       ) : (
         <div className="flex flex-col md:flex-row gap-6">
           <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm max-w-sm">
-            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Orders (daily)</p>
+            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Orders ({range})</p>
             <p className="text-4xl font-extrabold text-gray-900">{summary?.totalOrders ?? 0}</p>
           </div>
           <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex-1">

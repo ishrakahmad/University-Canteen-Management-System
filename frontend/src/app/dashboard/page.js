@@ -99,6 +99,10 @@ export default function DashboardPage() {
 
   const handleEditSave = async (id) => {
     try {
+      if (editFormData.dailyQuantity !== '' && parseInt(editFormData.dailyQuantity, 10) < 0) {
+        triggerNotification('Stock quantity cannot be negative.');
+        return;
+      }
       const payload = isAdmin
         ? {
             name: editFormData.name,

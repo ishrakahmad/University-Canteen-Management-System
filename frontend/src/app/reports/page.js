@@ -38,6 +38,9 @@ export default function ReportsPage() {
       router.push('/dashboard');
       return;
     }
+    if (!userRole) {
+      return;
+    }
     fetchReports(range);
   }, [token, userRole, range]);
 

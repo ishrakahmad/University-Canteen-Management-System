@@ -6,13 +6,14 @@ import { JwtGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../user/user.entity'; 
+import { Public } from '../auth/decorators/public.decorator';
 
 @ApiBearerAuth()
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  
+  @Public()
   @Get()
   findAll() {
     return this.categoriesService.findAll();

@@ -19,7 +19,6 @@ export const AppProvider = ({ children }) => {
   const [notification, setNotification] = useState('');
   const router = useRouter();
   const [categories, setCategories] = useState([]);
-
   const [cart, setCart] = useState([]);
 
   const fetchCategories = useCallback(async () => {
@@ -72,22 +71,18 @@ export const AppProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const storedToken =
-      localStorage.getItem('token') || localStorage.getItem('accessToken');
+    const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
       try {
         const decoded = jwtDecode(storedToken);
-        const normalizedRole = normalizeRole(
-          decoded?.role ?? decoded?.userRole ?? decoded?.user?.role,
-        );
+        const normalizedRole = normalizeRole(decoded?.role);
         setUserRole(normalizedRole || null);
         setUserName(decoded.fullName);
-        setUserId(decoded.sub ?? decoded.userId ?? decoded.id ?? null);
+        setUserId(decoded.sub ?? null);
       } catch (error) {
         console.error("Invalid token");
         localStorage.removeItem('token');
-        localStorage.removeItem('accessToken');
       }
     }
     fetchCategories();
@@ -95,19 +90,20 @@ export const AppProvider = ({ children }) => {
   }, [fetchCategories]);
 
   const login = (newToken) => {
-    setToken(newToken);
+    if (!newToken) {
+      console.error("login() called without a token");
+      return;
+    }
     localStorage.setItem('token', newToken);
-    localStorage.setItem('accessToken', newToken);
+    setToken(newToken);
     try {
       const decoded = jwtDecode(newToken);
-      const normalizedRole = normalizeRole(
-        decoded?.role ?? decoded?.userRole ?? decoded?.user?.role,
-      );
+      const normalizedRole = normalizeRole(decoded?.role);
       setUserRole(normalizedRole || null);
       setUserName(decoded.fullName);
-      setUserId(decoded.sub ?? decoded.userId ?? decoded.id ?? null);
+      setUserId(decoded.sub ?? null);
     } catch (e) {
-      console.error("Failed to decode token on login");
+      console.error("Failed to decode token on login", e);
     }
     triggerNotification("Successfully logged in!");
   };
@@ -119,7 +115,6 @@ export const AppProvider = ({ children }) => {
     setUserId(null);
     clearCart();
     localStorage.removeItem('token');
-    localStorage.removeItem('accessToken');
     triggerNotification("Logged out successfully");
     router.push('/');
   };

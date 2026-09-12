@@ -2,7 +2,6 @@
 import { useState, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { jwtDecode } from 'jwt-decode';
 import api from '../lib/axios';
 import { AppContext } from '../context/AppContext';
 
@@ -17,41 +16,27 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    const validationErrors = [];
-
-    if (!email.trim()) {
-      validationErrors.push('Enter email first');
-    }
-
-    if (!password.trim()) {
-      validationErrors.push('Enter valid password first');
-    }
-
-    if (validationErrors.length > 0) {
-      setError(validationErrors.join('\n'));
-      return;
-    }
-
     try {
       const response = await api.post('/auth/login', { email, password });
-      const token = response.data.accessToken || response.data.access_token || response.data.token;
+      const token = response.data.access_token;
 
-      if (token) {
-        const decoded = jwtDecode(token);
-        login(token);
+      if (!token) {
+        setError('Logged in, but no token received from backend.');
+        return;
+      }
 
-        const normalizedRole =
-          typeof (decoded?.role ?? decoded?.userRole ?? decoded?.user?.role) === 'string'
-            ? (decoded?.role ?? decoded?.userRole ?? decoded?.user?.role).trim().toLowerCase()
-            : '';
+      login(token);
 
-        if (normalizedRole === 'admin' || normalizedRole === 'staff') {
+      if (response.data && token) {
+        const payloadBase64 = token.split('.')[1];
+        const payload = JSON.parse(atob(payloadBase64));
+        const role = (payload.role || '').toLowerCase();
+
+        if (role === 'admin' || role === 'staff') {
           router.push('/dashboard');
         } else {
           router.push('/');
         }
-      } else {
-        setError('Logged in, but no token received from backend.');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password');
@@ -67,30 +52,25 @@ export default function LoginPage() {
         <p className="text-gray-600 text-center mb-8 font-medium">Sign in to your account.</p>
 
         {error && (
-          <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 text-sm font-bold text-center border border-red-200 whitespace-pre-line">
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 text-sm font-bold text-center border border-red-200">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <input
-            id="email"
             type="email"
             placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
             className={inputClass}
           />
-
           <div>
             <input
-              id="password"
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
               className={inputClass}
             />
             <div className="text-right mt-2">
@@ -99,7 +79,6 @@ export default function LoginPage() {
               </Link>
             </div>
           </div>
-
           <button
             type="submit"
             className="w-full py-4 mt-2 bg-gray-900 hover:bg-black text-white font-bold text-lg rounded-lg transition-colors shadow-md"

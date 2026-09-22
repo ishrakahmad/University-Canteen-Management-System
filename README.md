@@ -3,7 +3,6 @@
 A full-stack web application that digitizes university canteen operations students pre order food with a pickup time slot, canteen staff manage the order queue and daily menu and admins track sales through automated reports.
 
 **Live App:** [ucms.ishrakahmad.me](https://ucms.ishrakahmad.me)
-**API Docs (Swagger):** _add your Render Swagger URL here, e.g. `https://university-canteen-management-system.onrender.com`_
 
 ---
 
